@@ -1,9 +1,9 @@
-defmodule NervesSystemShell.MixProject do
+defmodule NervesSSHSystemShell.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :nerves_system_shell,
+      app: :nerves_ssh_system_shell,
       version: "0.1.0",
       elixir: "~> 1.18",
       start_permanent: Mix.env() == :prod,
@@ -21,7 +21,8 @@ defmodule NervesSystemShell.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:expty, "~> 0.2.1"}
+      {:expty, "~> 0.2.1"},
+      {:nerves_ssh, ">= 0.4.0"}
     ]
   end
 end

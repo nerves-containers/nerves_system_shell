@@ -1,4 +1,4 @@
-defmodule NervesSystemShell.Utils do
+defmodule NervesSSHSystemShell.Utils do
   @moduledoc false
 
   def get_shell_command() do
@@ -28,7 +28,7 @@ defmodule NervesSystemShell.Utils do
     do: List.to_string(term)
 end
 
-defmodule NervesSystemShell do
+defmodule NervesSSHSystemShell do
   @moduledoc """
   A `:ssh_server_channel` that uses `ExPTY` to provide an interactive system shell.
 
@@ -44,7 +44,24 @@ defmodule NervesSystemShell do
 
   require Logger
 
-  import NervesSystemShell.Utils
+  import NervesSSHSystemShell.Utils
+
+  def child_spec(opts) do
+    port = Keyword.fetch!(opts, :port)
+
+    options =
+      NervesSSH.Options.with_defaults(
+        Application.get_all_env(:nerves_ssh)
+        |> Keyword.merge(
+          name: :shell,
+          port: port,
+          shell: :disabled,
+          daemon_option_overrides: [{:ssh_cli, {NervesSSHSystemShell, []}}]
+        )
+      )
+
+    NervesSSH.child_spec(options)
+  end
 
   defp exec_command(cmd, %{pty_opts: pty_opts, env: env}) do
     [file | args] = cmd
@@ -197,7 +214,7 @@ defmodule NervesSystemShell do
   end
 end
 
-defmodule NervesSystemShell.Subsystem do
+defmodule NervesSSHSystemShell.Subsystem do
   # maybe merge this into the SystemShell module
   # but not sure yet if it's worth the effort
 
@@ -230,7 +247,7 @@ defmodule NervesSystemShell.Subsystem do
 
   require Logger
 
-  import NervesSystemShell.Utils
+  import NervesSSHSystemShell.Utils
 
   @impl true
   def init(opts) do

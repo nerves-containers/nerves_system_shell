@@ -1,19 +1,19 @@
-# NervesSystemShell
+# NervesSSHSystemShell
 
 Nerves devices typically only expose an Elixir or Erlang shell prompt. While this is handy,
-some tasks are easier to run in a more `bash`-like shell environment. `:nerves_system_shell` adds
+some tasks are easier to run in a more `bash`-like shell environment. `:nerves_ssh_system_shell` adds
 support for running a separate SSH daemon that launches a system shell (busybox's `ash` by default)
 using `NervesSSH`.
 
 ## Installation
 
 If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `nerves_system_shell` to your list of dependencies in `mix.exs`:
+by adding `nerves_ssh_system_shell` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
   [
-    {:nerves_system_shell, "~> 0.1.0"}
+    {:nerves_ssh_system_shell, "~> 0.1.0"}
   ]
 end
 ```
@@ -28,21 +28,27 @@ def children(_target) do
     # run a second ssh daemon on another port
     # but with all other options being the same
     # as the default daemon on port 22
-    {NervesSSH,
-     NervesSSH.Options.with_defaults(
-       Application.get_all_env(:nerves_ssh)
-       |> Keyword.merge(
-         name: :shell,
-         port: 2222,
-         shell: :disabled,
-         daemon_option_overrides: [{:ssh_cli, {NervesSystemShell, []}}]
-       )
-     )}
+    {NervesSSHSystemShell, port: 2222}
   ]
 end
 ```
 
-As an alternative to the last step, you may also run the Unix shell in a subsystem
+The child specification `{NervesSSHSystemShell, port: 2222}` is a shorthand for:
+
+```elixir
+{NervesSSH,
+  NervesSSH.Options.with_defaults(
+    Application.get_all_env(:nerves_ssh)
+    |> Keyword.merge(
+      name: :shell,
+      port: 2222,
+      shell: :disabled,
+      daemon_option_overrides: [{:ssh_cli, {NervesSSHSystemShell, []}}]
+    )
+  )}
+```
+
+As an alternative to a separate daemon, you may also run the Unix shell in a subsystem
 similar to the firmware update functionality. This allows all SSH functionality to run
 on a single TCP port, but has the following known issues that cannot be fixed:
 
@@ -57,8 +63,8 @@ You can enable the shell subsystem by adding it to the default configuration:
 # config/target.exs
 config :nerves_ssh,
   subsystems: [
-    :ssh_sftpd.subsystem_spec(cwd: '/'),
-    {'shell', {NervesSystemShell.Subsystem, []}},
+    :ssh_sftpd.subsystem_spec(cwd: ~c"/"),
+    {~c"shell", {NervesSSHSystemShell.Subsystem, []}},
   ],
   # ...
 ```

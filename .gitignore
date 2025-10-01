@@ -17,7 +17,7 @@ erl_crash.dump
 *.ez
 
 # Ignore package tarball (built via "mix hex.build").
-nerves_system_shell-*.tar
+nerves_ssh_system_shell-*.tar
 
 # Temporary files, for example, from tests.
 /tmp/
